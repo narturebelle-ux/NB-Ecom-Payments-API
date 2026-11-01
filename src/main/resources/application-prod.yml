@@ -1,0 +1,23 @@
+# =========================================================================
+# PRODUCTION ENVIRONMENT CONFIGURATION
+# =========================================================================
+# Datasource (DB_URL/DB_USERNAME/DB_PASSWORD) is inherited from application.yml, with no defaults.
+
+logging:
+  level:
+    root: WARN
+    com.narturebelle: INFO
+
+# No defaults: a missing value must stop startup, not quietly refuse callers or sign with the dev secret.
+firebase:
+  service-account-base64: ${FIREBASE_SERVICE_ACCOUNT_BASE64}
+
+payments:
+  mock:
+    webhook-secret: ${MOCK_PAYMENT_WEBHOOK_SECRET}
+
+care:
+  base-url: ${CARE_API_URL}
+
+internal:
+  api-token: ${INTERNAL_API_TOKEN}

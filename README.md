@@ -21,6 +21,29 @@ Tests start their own private Postgres, so they need no database settings. Windo
 
 They use a stand-in for Care's tables. To run them on Care's real ones, set `CARE_MIGRATIONS_DIR` to a copy of Care's `src/main/resources/db/migration` folder, and run `.\gradlew cleanTest test`.
 
+## Deploy
+
+The root `Dockerfile` builds the container. `vercel.json` deploys only `develop` and `main`, so a feature branch creates no deployment.
+
+Pre-production and production need every setting below, or startup fails. Set them on Vercel and never commit a value. Stage values must point at the stage database, never production.
+
+| Setting | What it is |
+|---|---|
+| `SPRING_PROFILES_ACTIVE` | `stage` or `prod`. The container refuses to start on anything else |
+| `DB_URL` | Database address, shared with Care |
+| `DB_USERNAME` | Database user |
+| `DB_PASSWORD` | Database password |
+| `FIREBASE_SERVICE_ACCOUNT_BASE64` | Firebase service account key, base64-encoded |
+| `CARE_API_URL` | Care API address, for its private lookups |
+| `INTERNAL_API_TOKEN` | Private token shared with Care, the same value on both |
+| `MOCK_PAYMENT_WEBHOOK_SECRET` | Signs mock payment webhooks. Make it unique to each environment |
+
+These are checked for being missing, not for being correct. An empty `INTERNAL_API_TOKEN` or `CARE_API_URL` still starts, then refuses callers.
+
+Optional: `SCHEDULING_ENABLED` turns the 30-minute stuck-payment check on or off, and is on unless set to `false`. `PORT` is 80 in the container.
+
+Care's tables must already be in the database, because startup checks them. Set up pre-production in this order: migrate Care, then deploy this API.
+
 ## Status
 
 This is a copy of the Care API's money code. It isn't live, and Care still serves every request.
