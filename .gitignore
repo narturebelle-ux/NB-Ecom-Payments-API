@@ -1,0 +1,7 @@
+build/
+bin/
+.gradle/
+.env*
+*firebase-service-account*.json
+hs_err_*.log
+replay_*.log

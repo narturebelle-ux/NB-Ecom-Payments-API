@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: nb-ecom-payments-api
+
+  # One database for all APIs. No defaults on purpose: never hard-code credentials, fail fast if env vars are missing.
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+
+  # Flyway here owns only the money schema. Plans, orders, payments and refunds stay in public, migrated by Care.
+  flyway:
+    default-schema: money
+    schemas: money
+    create-schemas: true
+    baseline-on-migrate: false
+
+server:
+  port: ${PORT:8083}
+  forward-headers-strategy: native
+
+cors:
+  allowed-origins: "https://narturebelle.com,https://www.narturebelle.com,https://stage-narturebelle.com,https://staging.narturebelle.com,http://localhost:*"
+
+# Firebase Credentials — tried in order: base64 env var, then local file, then ADC.
+firebase:
+  service-account-base64: ${FIREBASE_SERVICE_ACCOUNT_BASE64:}
+  credentials:
+    path: classpath:firebase-service-account.json
+
+# Mock payment provider. Signs/verifies webhook payloads via HMAC-SHA256.
+payments:
+  mock:
+    webhook-secret: ${MOCK_PAYMENT_WEBHOOK_SECRET:dev-only-mock-webhook-secret-change-me}
+
+# The Care API, which owns users, roles and consent. While unset, this API refuses every signed-in caller.
+care:
+  base-url: ${CARE_API_URL:}
+
+# Shared private token for /internal/** in both directions. While unset, those calls are refused.
+internal:
+  api-token: ${INTERNAL_API_TOKEN:}
+
+narturebelle:
+  scheduling:
+    enabled: ${SCHEDULING_ENABLED:true}

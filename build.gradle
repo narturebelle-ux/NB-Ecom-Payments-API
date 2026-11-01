@@ -1,0 +1,55 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.3.4'
+    id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'com.narturebelle'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+// Byte Buddy's agent loaded as a -javaagent on the test JVM, so Mockito's inline mock maker finds
+// instrumentation already installed instead of self-attaching at runtime -- which fails on Windows
+// with "Could not self-attach" when memory is tight. (mockito-core 5.11 has no Premain-Class itself.)
+configurations {
+    mockitoAgent
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // Firebase Admin SDK for token verification
+    implementation 'com.google.firebase:firebase-admin:9.4.3'
+
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-database-postgresql'
+
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // Tests run on a real private Postgres, because Flyway and ddl-auto: validate need one.
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'io.zonky.test:embedded-postgres:2.0.7'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    mockitoAgent('net.bytebuddy:byte-buddy-agent') { transitive = false }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    maxHeapSize = "384m"
+    minHeapSize = "64m"
+    // The machine is short of memory, and the JVM's native allocations are what ran out of it.
+    jvmArgs "-javaagent:${configurations.mockitoAgent.asPath}", "-XX:TieredStopAtLevel=1", "-XX:+UseSerialGC", "-XX:ReservedCodeCacheSize=64m"
+}

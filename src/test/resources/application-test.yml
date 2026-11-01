@@ -1,0 +1,9 @@
+server:
+  port: 0
+
+narturebelle:
+  scheduling:
+    enabled: false
+
+internal:
+  api-token: test-internal-token
